@@ -1,10 +1,13 @@
-package com.example.vbased_client_demo;
+package com.gromaudio.vbased;
+
+import com.gromaudio.vbased.IVBaseUsbServiceListener;
 
 /**
  *  AIDL file must match the interface defined in IVBaseUsbService.h
  **/
 interface IVBaseUsbService {
-    // TODO: define constants from IVBaseUsbService somewhere since aidl doesn't allow it
+    int addListener(IVBaseUsbServiceListener listener);
+    int removeListener(IVBaseUsbServiceListener listener);
 
     int countDevices();
     String getDevicePath(int idx);
