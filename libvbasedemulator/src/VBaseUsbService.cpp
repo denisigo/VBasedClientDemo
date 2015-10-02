@@ -50,16 +50,50 @@ void VBaseUsbService::tick()
 }
 
 //-------------------------------------------------------------------------------------------------
+
+status_t VBaseUsbService::addListener(
+                                const sp<IVBaseUsbServiceListener>& listener) {
+
+    // TODO: make threadsafe?
+
+    Vector<sp<IVBaseUsbServiceListener> >::iterator it, end;
+    for (it = mListenerList.begin(); it != mListenerList.end(); ++it) {
+        if ((*it)->asBinder() == listener->asBinder()) {
+            return ALREADY_EXISTS;
+        }
+    }
+
+    mListenerList.push_back(listener);
+
+    return OK;
+}
+
+status_t VBaseUsbService::removeListener(
+                                const sp<IVBaseUsbServiceListener>& listener) {
+
+    // TODO: make threadsafe?
+
+    Vector<sp<IVBaseUsbServiceListener> >::iterator it;
+    for (it = mListenerList.begin(); it != mListenerList.end(); ++it) {
+        if ((*it)->asBinder() == listener->asBinder()) {
+            mListenerList.erase(it);
+            return OK;
+        }
+    }
+
+    return BAD_VALUE;
+}
+
 size_t VBaseUsbService::countDevices()
 {
   printf("countDevices(): 10\n");
   return 10;
 }
 
-String16 VBaseUsbService::getDevicePath( size_t idx )
+String8 VBaseUsbService::getDevicePath( size_t idx )
 {
   printf("getDevicePath(%u): some_device_path\n", idx);
-  return String16( "some_device_path" );
+  return String8( "some_device_path" );
 }
 
 UsbDeviceType VBaseUsbService::getDeviceType( size_t idx )
@@ -89,7 +123,19 @@ status_t VBaseUsbService::execCmdAAuto( UsbDeviceCmd cmd )
 status_t VBaseUsbService::execCmdCarplay( UsbDeviceCmd cmd )
 {
   printf("execCmdCarplay(%u): OK\n", cmd);
+
+  // TODO: remove
+  // Test notify listeners
+  notifyStateChanged(42);
+
   return OK;
+}
+
+void VBaseUsbService::notifyStateChanged(int32_t state){
+    Vector<sp<IVBaseUsbServiceListener> >::const_iterator it;
+    for (it = mListenerList.begin(); it != mListenerList.end(); ++it) {
+      (*it)->onStateChanged(state);
+    }
 }
 
 }

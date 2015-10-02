@@ -18,9 +18,11 @@
 #ifndef __VBASE_USB_SERVICE_H__
 #define __VBASE_USB_SERVICE_H__
 
+#include <utils/Vector.h>
 #include <utils/RefBase.h>
-#include <utils/String16.h>
+#include <utils/String8.h>
 #include <IVBaseUsbService.h>
+#include <IVBaseUsbServiceListener.h>
 
 namespace android
 {
@@ -35,13 +37,21 @@ public:
   void publish();
 
 private:
+  Vector<sp<IVBaseUsbServiceListener> >
+                        mListenerList;
+
+  virtual status_t      addListener(const sp<IVBaseUsbServiceListener>& listener);
+  virtual status_t      removeListener(const sp<IVBaseUsbServiceListener>& listener);
+
   virtual size_t        countDevices();
-  virtual String16      getDevicePath( size_t idx );
+  virtual String8       getDevicePath( size_t idx );
   virtual UsbDeviceType getDeviceType( size_t idx );
   virtual status_t      activateAAuto( bool state );
   virtual status_t      activateCarplay( bool state );
   virtual status_t      execCmdAAuto( UsbDeviceCmd cmd );
   virtual status_t      execCmdCarplay( UsbDeviceCmd cmd );
+
+  virtual void notifyStateChanged(int32_t state);
 };
 
 }

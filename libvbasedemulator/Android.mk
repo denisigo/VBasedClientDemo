@@ -3,7 +3,8 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_SRC_FILES := src/VBaseUsbService.cpp \
-    src/IVBaseUsbService.cpp
+                   src/IVBaseUsbService.cpp \
+                   src/IVBaseUsbServiceListener.cpp
 
 LOCAL_C_INCLUDES :=         \
     $(LOCAL_PATH)/include

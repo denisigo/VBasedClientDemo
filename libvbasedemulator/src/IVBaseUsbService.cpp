@@ -19,6 +19,7 @@
 #include <sys/types.h>
 #include <binder/Parcel.h>
 #include "IVBaseUsbService.h"
+#include "IVBaseUsbServiceListener.h"
 
 namespace android
 {
@@ -30,6 +31,25 @@ public:
   BpVBaseUsbService( const sp<IBinder>& impl )
     : BpInterface<IVBaseUsbService>( impl ) {}
 
+    virtual status_t addListener(const sp<IVBaseUsbServiceListener>& listener)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IVBaseUsbService::getInterfaceDescriptor());
+        data.writeStrongBinder(listener->asBinder());
+        remote()->transact(ADD_LISTENER, data, &reply);
+        return reply.readInt32();
+    }
+
+    virtual status_t removeListener(const sp<IVBaseUsbServiceListener>& listener)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(IVBaseUsbService::getInterfaceDescriptor());
+        data.writeStrongBinder(listener->asBinder());
+        remote()->transact(REMOVE_LISTENER, data, &reply);
+        return reply.readInt32();
+    }
+
+
     virtual size_t countDevices()
     {
       Parcel data, reply;
@@ -38,13 +58,13 @@ public:
       return reply.readInt32();
     }
 
-    virtual String16 getDevicePath( size_t idx )
+    virtual String8 getDevicePath( size_t idx )
     {
       Parcel data, reply;
       data.writeInterfaceToken( IVBaseUsbService::getInterfaceDescriptor() );
       data.writeInt32( idx );
       remote()->transact( GET_DEVICE_PATH, data, &reply );
-      return reply.readString16();
+      return String8(reply.readString16());
     }
 
     virtual UsbDeviceType getDeviceType( size_t idx )
@@ -94,7 +114,7 @@ public:
 };
 
 
-IMPLEMENT_META_INTERFACE( VBaseUsbService, "com.example.vbased_client_demo.IVBaseUsbService" );
+IMPLEMENT_META_INTERFACE( VBaseUsbService, "com.gromaudio.vbased.IVBaseUsbService" );
 
 status_t BnVBaseUsbService::onTransact( uint32_t  code,
                                         const     Parcel& data,
@@ -103,6 +123,23 @@ status_t BnVBaseUsbService::onTransact( uint32_t  code,
 {
   switch( code )
   {
+    case ADD_LISTENER: {
+        CHECK_INTERFACE(IVBaseUsbService, data, reply);
+        sp<IVBaseUsbServiceListener> listener =
+            interface_cast<IVBaseUsbServiceListener>(data.readStrongBinder());
+        reply->writeNoException();
+        reply->writeInt32(addListener(listener));
+        return NO_ERROR;
+    } break;
+    case REMOVE_LISTENER: {
+        CHECK_INTERFACE(IVBaseUsbService, data, reply);
+        sp<IVBaseUsbServiceListener> listener =
+            interface_cast<IVBaseUsbServiceListener>(data.readStrongBinder());
+        reply->writeNoException();
+        reply->writeInt32(removeListener(listener));
+        return NO_ERROR;
+    } break;
+
     case COUNT_DEVICES:
     {
       CHECK_INTERFACE( IVBaseUsbService, data, reply );
@@ -115,7 +152,7 @@ status_t BnVBaseUsbService::onTransact( uint32_t  code,
     {
       CHECK_INTERFACE( IVBaseUsbService, data, reply );
       reply->writeNoException();
-      reply->writeString16( getDevicePath( data.readInt32() ) );
+      reply->writeString16(String16(getDevicePath( data.readInt32() )));
       return NO_ERROR;
     }break;
 

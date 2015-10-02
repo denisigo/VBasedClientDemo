@@ -23,6 +23,8 @@
 
 namespace android {
 
+class IVBaseUsbServiceListener;
+
 enum UsbDeviceType {
   USB_DEVICE_NONE               = 0,
   USB_DEVICE_ANDROID_ACCESSORY  = 1,
@@ -38,7 +40,10 @@ enum UsbDeviceCmd {
 };
 
 enum {
-  COUNT_DEVICES = IBinder::FIRST_CALL_TRANSACTION,
+  ADD_LISTENER = IBinder::FIRST_CALL_TRANSACTION,
+  REMOVE_LISTENER,
+
+  COUNT_DEVICES,
   GET_DEVICE_PATH,
   GET_DEVICE_TYPE,
   ACTIVATE_ANDROID_AUTO,
@@ -52,8 +57,11 @@ class IVBaseUsbService : public IInterface
 public:
   DECLARE_META_INTERFACE( VBaseUsbService );
 
+  virtual status_t      addListener(const sp<IVBaseUsbServiceListener>& listener) = 0;
+  virtual status_t      removeListener(const sp<IVBaseUsbServiceListener>& listener) = 0;
+
   virtual size_t        countDevices()                      = 0;
-  virtual String16      getDevicePath( size_t idx )         = 0;
+  virtual String8       getDevicePath( size_t idx )         = 0;
   virtual UsbDeviceType getDeviceType( size_t idx )         = 0;
   virtual status_t      activateAAuto( bool state )         = 0;
   virtual status_t      activateCarplay( bool state )       = 0;
